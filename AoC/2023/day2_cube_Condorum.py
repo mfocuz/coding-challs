@@ -76,18 +76,8 @@ def find_min_qt_cubes(game_iterations):
     return qubes_min_qt['red'] * qubes_min_qt['green'] * qubes_min_qt['blue']
 
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
-    # result1 = day2_part1()
+    result1 = day2_part1()
     result2 = day2_part2()
-    # print(result1)
+    print(result1)
     print(result2)
