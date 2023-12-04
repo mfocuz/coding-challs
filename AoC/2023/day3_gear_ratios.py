@@ -161,8 +161,6 @@ def look_right(engine, y, x, number_piece):
         return number_piece
 
 
-
-
 if __name__ == '__main__':
     # print(day2_part1('inputs/day3/test_input.txt'))
     # print(day2_part1('inputs/day3/input.txt'))
