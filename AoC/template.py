@@ -4,7 +4,7 @@ def parse_file(filename):
 
     structure = []
 
-    for i in range(0, len(lines)):
+    for line in lines:
         pass
 
     return structure
@@ -22,8 +22,8 @@ def dayN_part2(filename):
 
 
 if __name__ == '__main__':
-    print("part1: test_input=%s" % dayN_part1('inputs/<day>/test_input.txt'))
-    print("part1: input=%s" % dayN_part1('inputs/<day>/input.txt'))
+    print("part1: test_input=%s" % dayN_part1('inputs/<day5>/test_input.txt'))
+    print("part1: input=%s" % dayN_part1('inputs/<day5>/input.txt'))
 
-    print("part2: test_input=%s" % dayN_part2('inputs/<day>/test_input.txt'))
-    print("part2: input=%s" % dayN_part2('inputs/<day>/input.txt'))
+    print("part2: test_input=%s" % dayN_part2('inputs/<day5>/test_input.txt'))
+    print("part2: input=%s" % dayN_part2('inputs/<day5>/input.txt'))
