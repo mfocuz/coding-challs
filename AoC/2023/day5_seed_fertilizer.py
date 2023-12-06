@@ -66,27 +66,6 @@ def find_location(seed, seed_map):
 
      return seed
 
-
-def day5_part2(filename):
-    seeds, seed_map = parse_file(filename)
-
-    seed_pairs = [(seeds[i], seeds[i] + seeds[i+1]) for i in range(0, len(seeds)-1, 2)]
-
-    min_location = None
-    for seed_pair in seed_pairs:
-
-        location = range_mapper(seed_pair, seed_map, 0)
-        if min_location is None or min_location > location:
-            min_location = location
-
-    return min_location
-
-    return 0
-
-
-
-
-
 def day5_part2(filename):
     seeds, seed_map = parse_file(filename)
 
