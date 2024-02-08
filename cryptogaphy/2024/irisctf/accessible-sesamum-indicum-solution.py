@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
+#!/home/kali/Tools/mambaforge/envs/sage/bin/python
 import sys
+from time import sleep
 
-from pwn import *
+from sage.combinat.debruijn_sequence import debruijn_sequence
 import random
 
 MAX_DIGITS = 65536
@@ -12,7 +13,7 @@ def vault(pin_input) -> bool:
         digits = ["z", "z", "z", "z"]
         counter = 0
 
-        print("What is the 4-digit PIN?")
+        # print("What is the 4-digit PIN?")
 
         attempt = list(pin_input)
         while True:
@@ -28,7 +29,7 @@ def vault(pin_input) -> bool:
             return False
 
 
-def calc_dirty_brute():
+def dumb_solution():
     full_input = ""
     for i in range(16**4):
         full_input += "{:0{n}X}".format(i, n=4)
@@ -64,21 +65,23 @@ def find_good_input():
             return pin, codes
 
 
-
 if __name__ == "__main__":
-    print("(+) In case of dummy bruteforce, probability of bruteforce of 16 vaults is %s" % str(((calc_dirty_brute()/(16**4)) ** 16)))
-    pin_input, codes = find_good_input()
+    print("(+) In case of dummy bruteforce, probability of bruteforce of 16 vaults is %s" % str(((dumb_solution() / (16 ** 4)) ** 16)))
+    # pin_input, codes = find_good_input()
+    pin_input = "".join([f"{i:x}" for i in debruijn_sequence(16, 4)])
 
+    print("You've made it to vault:")
     for n in range(16):
-        print(f"You've made it to vault #{n + 1}.")
+        print(f"#{n + 1}-", end="")
 
         if not vault(pin_input):
             print("(-) The alarm goes off and you're forced to flee. Maybe next time!")
             sys.exit(0)
         else:
-            print("You've defeated this vault.")
+            print("OK;", end="")
+            sleep(0.5)
 
-    print("!!!You unlock the vault and find the flag!!!")
+    print("\n!!!You unlock the vault and find the flag!!!")
 
 
 
