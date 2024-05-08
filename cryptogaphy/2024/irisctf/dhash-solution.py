@@ -80,6 +80,7 @@ def main():
 
     print("Give me your string that hashes to 0...")
     preimage = solution(e, N)
+    print("Solution block=%s" % preimage.hex())
     if len(preimage) < 256 or len(preimage) % 256 != 0:
         raise ValueError("Invalid input!")
 

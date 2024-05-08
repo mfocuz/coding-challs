@@ -105,6 +105,8 @@ def solution():
     print("Simulating input '1' for prompt (create command)")
     iv, vanilla_command = create_command("whatever")
     message = json.dumps({"from": "guest", "act": "echo", "msg": "whatever"})
+    print("message=%s" % message)
+    print("encrypted message=%s" % vanilla_command)
     solution_message = json.dumps({"from": "admin", "act": "flag", "msg": "whatever"})
     print(f"IV: {iv}")
     print(f"Encrypted Command: {vanilla_command}")
