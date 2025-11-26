@@ -12,30 +12,26 @@ class Xoshiro256Base:
         x2 = (value << (64 - offset)) & 0xffffffffffffffff
         return x2 | x1
 
+class Xoshiro256State:
+    BIT64 = 0xffffffffffffffff
+    def __init__(self, s0, s1, s2, s3):
+        self.s0 = s0 & self.BIT64
+        self.s1 = s1 & self.BIT64
+        self.s2 = s2 & self.BIT64
+        self.s3 = s3 & self.BIT64
+        self.r1 = self.r2 = 0
+        self.n1 = self.n2 = self.n3 = self.n4 = self.n5 = self.n6 = self.n7 = self.n8 = 0
+
 class Xoshiro256(Xoshiro256Base):
-    s0 = s1 = s2 = s3 = 0
-    r1 = r2 = 0
-    n1 = n2 = n3 = n4 = n5 = n6 = n7 = n8 = 0
-    prev_s0 = prev_s1 = prev_s2 = prev_s3 = 0
+    current_state = 0
+    prng_states = []
 
     def __init__(self, s0, s1, s2, s3):
-        """Initialize with 4 64-bit integers as state values."""
-        self.s0 = s0 & 0xffffffffffffffff
-        self.s1 = s1 & 0xffffffffffffffff
-        self.s2 = s2 & 0xffffffffffffffff
-        self.s3 = s3 & 0xffffffffffffffff
+        state = Xoshiro256State(s0, s1, s2, s3)
+        self.prng_states.append(state)
 
-        self.state = [self.s0, self.s1, self.s2, self.s3]
-        self.n1 = self.n2 = self.n3 = self.n4 = self.n5 = self.n6 = self.n7 = self.n8 = 0
-        self.intermediate_state = [self.n1, self.n2, self.n3, self.n4, self.n5, self.n6, self.n7, self.n8]
-
-    def print_state(self):
-        print(f"Xoshiro256 current state:")
-        for i in self.state:
-            print(f"  state[{i}] = 0x{self.state[i]:016x} ({self.state[i]})")
-
-        for i in self.intermediate_state:
-            print(f"  intermediate_state[{i}] = 0x{self.intermediate_state[i]:016x} ({self.intermediate_state[i]})")
+    def next_state(self):
+        self.current_state += 1
 
     def next_uint64(self):
         result = self.generate()
@@ -46,28 +42,25 @@ class Xoshiro256(Xoshiro256Base):
         return (value64 >> 32) & 0xffffffff
 
     def generate(self):
-        self.prev_s0 = self.s0
-        self.prev_s1 = self.s1
-        self.prev_s2 = self.s2
-        self.prev_s3 = self.s3
+        current_state = self.prng_states[self.current_state]
+        current_state.r1 = current_state.s1 * 5 & 0xffffffffffffffff
+        current_state.r2 = self._rotl(current_state.r1, 7)
+        current_state.n1 = current_state.r2 * 9 & 0xffffffffffffffff
 
-        self.r1 = self.s1 * 5 & 0xffffffffffffffff
-        self.r2 = self._rotl(self.r1, 7)
-        self.n1 = self.r2 * 9 & 0xffffffffffffffff
+        current_state.n2 = current_state.s1 << 17 & 0xffffffffffffffff
+        current_state.n3 = current_state.s2 ^ current_state.s0
+        current_state.n4 = current_state.s3 ^ current_state.s1
+        current_state.n5 = current_state.s1 ^ current_state.n3
+        current_state.n6 = current_state.s0 ^ current_state.n4
+        current_state.n7 = current_state.n3 ^ current_state.n2
+        current_state.n8 = self._rotl(current_state.n4, 45)
 
-        self.n2 = self.s1 << 17 & 0xffffffffffffffff
-        self.n3 = self.s2 ^ self.s0
-        self.n4 = self.s3 ^ self.s1
-        self.n5 = self.s1 ^ self.n3
-        self.n6 = self.s0 ^ self.n4
-        self.n7 = self.n3 ^ self.n2
-        self.n8 = self._rotl(self.n4, 45)
+        self.prng_states[self.current_state] = current_state
+        self.next_state()
+        new_state = Xoshiro256State(current_state.n6, current_state.n5, current_state.n7, current_state.n8)
+        self.prng_states.append(new_state)
 
-        self.s0 = self.n6
-        self.s1 = self.n5
-        self.s2 = self.n7
-        self.s3 = self.n8
-        return self.n1
+        return current_state.n1
 
 
 def test_generator():
@@ -98,14 +91,18 @@ def test_generator():
 
 
 if __name__ == '__main__':
-    # if not test_generator():
-    #     print("Generator test failed")
-    # else:
-    #     print("Generator test passed")
+    if not test_generator():
+        print("Generator test failed")
+    else:
+        print("Generator test passed")
 
     xoshiro256 = Xoshiro256(10804161907448682703, 11460624974815451986, 15774960471522575440, 15521138194195770664)
-    first_output = xoshiro256.next_uint64()
-    print(f"Output x64bit: {first_output}")
+    output1 = xoshiro256.next_uint64()
+    output2 = xoshiro256.next_uint64()
+    output3 = xoshiro256.next_uint64()
+    output4 = xoshiro256.next_uint64()
+    for i in range(10):
+        print(xoshiro256.generate())
 
 
 
