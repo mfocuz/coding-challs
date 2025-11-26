@@ -11,9 +11,21 @@ class Xoshiro256Recover(Xoshiro256Base):
     prng_states = []
 
     def __init__(self):
-        pass
+        self.current_state = 0
+        self.prng_states = []
+
+    def check_if_state_recovered(self):
+        for i in self.prng_states:
+            if i.s0 != 0 and i.s1 != 0 and i.s2 != 0 and i.s3 != 0:
+                return i.s0, i.s1, i.s2, i.s3
+
+        return None
 
     def reverse_state(self, output):
+        recovered_state = self.check_if_state_recovered()
+        if recovered_state is not None:
+            return recovered_state
+
         new_state = Xoshiro256State(0, 0, 0, 0)
 
         # 1. recover s1 of current state
@@ -38,19 +50,19 @@ class Xoshiro256Recover(Xoshiro256Base):
             return
 
         s2_prev = self.prng_states[self.current_state-1].s2
-        s0 = self._reverse_s0(s1_prev, s1, s2)
-        new_state.s0 = s0
+        s0_prev = self._reverse_s0(s1, s1_prev, s2_prev)
+        self.prng_states[self.current_state - 1].s0 = s0_prev
 
         # 4. to recover s3 we need s0 in at least 2 states in a row
-        if self.prng_states[self.current_state-1].s0 == 0:
+        if self.prng_states[self.current_state-1].s0 == 0 or self.prng_states[self.current_state-2].s0 == 0:
             self.prng_states.append(new_state)
             self.current_state += 1
             return
 
-        s0_prev = self.prng_states[self.current_state-1].s0
-        s3 = self._reverse_s3(s0, s0_prev)
-        new_state.s3 = s3
-        self.prng_states.append(new_state)
+        s0_prev_prev = self.prng_states[self.current_state-2].s0
+        s1_prev_prev = self.prng_states[self.current_state-2].s1
+        s3 = self._reverse_s3(s0_prev_prev, s1_prev_prev, s0_prev)
+        self.prng_states[self.current_state-2].s3 = s3
         self.current_state += 1
 
     def generate(self):
@@ -72,21 +84,26 @@ class Xoshiro256Recover(Xoshiro256Base):
         s2 = n3 ^ n2
         return s2
 
-    def _reverse_s3(self, s0_prev, s0):
-        s3 = self._rotr(s0_prev ^ s0, 45)
+    def _reverse_s3(self, s0_prev,  s1_prev, s0):
+        s3 = s0_prev ^ s0 ^ s1_prev
         return s3
 
 
 if __name__ == '__main__':
     xoshiro256 = Xoshiro256(10804161907448682703, 11460624974815451986, 15774960471522575440, 15521138194195770664)
     xoshiro256_recover = Xoshiro256Recover()
-    output1 = xoshiro256.next_uint64()
-    xoshiro256_recover.reverse_state(output1)
-    output2 = xoshiro256.next_uint64()
-    xoshiro256_recover.reverse_state(output2)
-    output3 = xoshiro256.next_uint64()
-    xoshiro256_recover.reverse_state(output3)
-    output4 = xoshiro256.next_uint64()
-    xoshiro256_recover.reverse_state(output4)
-    output5 = xoshiro256.next_uint64()
-    xoshiro256_recover.reverse_state(output5)
+
+    i = 0
+    while True:
+        print ("output iteration: %i" % i)
+        output = xoshiro256.next_uint64()
+        state = xoshiro256_recover.reverse_state(output)
+        i += 1
+        if state is not None:
+            break
+
+    xoshiro256 = Xoshiro256(state[0], state[1], state[2], state[3])
+    for i in range(20):
+        value = xoshiro256.generate()
+        print("i:%i, 64bit: %s, 32bit:%s" % (i, value, value >> 32))
+

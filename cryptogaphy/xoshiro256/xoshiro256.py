@@ -27,6 +27,8 @@ class Xoshiro256(Xoshiro256Base):
     prng_states = []
 
     def __init__(self, s0, s1, s2, s3):
+        self.current_state = 0
+        self.prng_states = []
         state = Xoshiro256State(s0, s1, s2, s3)
         self.prng_states.append(state)
 
@@ -97,12 +99,9 @@ if __name__ == '__main__':
         print("Generator test passed")
 
     xoshiro256 = Xoshiro256(10804161907448682703, 11460624974815451986, 15774960471522575440, 15521138194195770664)
-    output1 = xoshiro256.next_uint64()
-    output2 = xoshiro256.next_uint64()
-    output3 = xoshiro256.next_uint64()
-    output4 = xoshiro256.next_uint64()
-    for i in range(10):
-        print(xoshiro256.generate())
+    for i in range(20):
+        value = xoshiro256.generate()
+        print("64bit: %s, 32bit:%s" % (value, value >> 32))
 
 
 
