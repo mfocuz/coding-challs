@@ -1,6 +1,8 @@
 import time
 
 from z3 import BitVec, BitVecVal, Solver, ZeroExt, RotateLeft, sat
+
+from cryptogaphy.xoshiro256.xoshiro_recover import Xoshiro256Recover
 from xoshiro256 import Xoshiro256
 
 
@@ -50,15 +52,29 @@ def recover_s1_from_outputs(outputs):
 
 
 if __name__ == "__main__":
-    xoshiro = Xoshiro256(
+    # Basic
+    xoshiro1 = Xoshiro256(
         10804161907448682703,
         11460624974815451986,
         15774960471522575440,
         15521138194195770664,
     )
     outputs = []
-    for _ in range(10):
-        val32 = xoshiro.next_uint32()
+    print("Original Sequence")
+    for _ in range(15):
+        val32 = xoshiro1.next_uint32()
+        print(val32)
+
+    print("Recovering s1 from outputs:")
+    outputs = []
+    xoshiro2 = Xoshiro256(
+        10804161907448682703,
+        11460624974815451986,
+        15774960471522575440,
+        15521138194195770664,
+    )
+    for _ in range(8):
+        val32 = xoshiro2.next_uint32()
         outputs.append(val32)
     t0 = time.time()
     print("32-bit outputs (high 32 bits of n1):", outputs)
@@ -66,3 +82,12 @@ if __name__ == "__main__":
     print("done, recovered state:", recovered)
     t1 = time.time()
     print("solver time:", t1 - t0, "seconds")
+
+    print("Reconstructed sequence:")
+    xoshiro_recovered = Xoshiro256(recovered[0], recovered[1], recovered[2], recovered[3])
+    for _ in range(15):
+        val32 = xoshiro_recovered.next_uint32()
+        print(val32)
+
+
+

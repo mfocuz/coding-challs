@@ -38,8 +38,8 @@ class Xoshiro256(Xoshiro256Base):
     def next_uint64(self):
         result = self.generate()
         return result
-    def next_uint50(self):
-        return self.next_uint64() >> 14
+    def next_uint60(self):
+        return self.next_uint64() >> 4
 
     def next_uint32(self):
         value64 = self.next_uint64()
